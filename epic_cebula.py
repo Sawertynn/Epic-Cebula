@@ -6,6 +6,7 @@ import logging
 from conf import *
 
 # future main() config and all
+
 level = logging.DEBUG
 logging.basicConfig(level=level)
 logging.info('Hello!')
@@ -18,6 +19,11 @@ except ImportError:
         python -m pip install pyautogui''')
     exit()
 
+# main variables
+width, height = gui.size()
+roll = int(height / 3)
+freegame_offset = int(height / 5)
+nextgame_offset = int(width / 5)
 
 # open epic game launcher app
 subprocess.run(app_path)
@@ -43,12 +49,21 @@ while app_name not in str(x.stdout):
 
 # locate free games
 while True:
-    pos = gui.locateOnScreen('Pics/free_now.png')
+    pos = gui.locateOnScreen('Pics/free_games.png')
     if pos:
+        if pos[1] > 2 * roll:
+            gui.scroll(-roll)
         break
-    gui.scroll(-400)
-    logging.debug(f'{pos=} {int(time.time()) % 100}')
+    gui.scroll(-roll)
 
+print(pos)
+pos = gui.locateOnScreen('Pics/free_games.png')
+gui.moveTo(pos[0], pos[1] + freegame_offset)
+time.sleep(1)
+gui.move(nextgame_offset, 0)
+time.sleep(1)
+gui.move(nextgame_offset, 0)
+exit()
 
 games_gotten = 1  # starting with 0
 offset_x = games_gotten * 350
