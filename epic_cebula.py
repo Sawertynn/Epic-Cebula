@@ -5,8 +5,6 @@ import subprocess
 import logging
 from conf import *
 
-# future main() config and all
-
 level = logging.DEBUG
 logging.basicConfig(level=level)
 logging.info('Hello!')
@@ -23,7 +21,7 @@ except ImportError:
 width, height = gui.size()
 roll = int(height / 3)
 freegame_offset = int(height / 5)
-nextgame_offset = int(width / 5)
+nextgame_offset = int(width / 5.2)
 
 # open epic game launcher app
 subprocess.run(app_path)
@@ -31,39 +29,21 @@ x = subprocess.run('tasklist', capture_output=True)
 while app_name not in str(x.stdout):
     pass
 
-
-# # switch to app
-# startup = 2  #seconds
-# start = time.perf_counter()
-#
-# while time.perf_counter() - start < startup:
-#     if gui.locateOnScreen('epic_launcher_windows_max.png'):
-#         logging.debug('app opened maximized, no switch')
-#         break
-#     pos = gui.locateOnScreen('epic_launcher_windows_mini.png')
-#     if pos:
-#         logging.debug('switched to app')
-#         x, y, w, h = pos
-#         gui.click(x + w // 2, y + h // 2)
-
-
 # locate free games
 while True:
-    pos = gui.locateOnScreen('Pics/free_games.png')
+    pos = gui.locateOnScreen('Pics/free_now.png')
     if pos:
-        if pos[1] > 2 * roll:
-            gui.scroll(-roll)
         break
     gui.scroll(-roll)
+game_count = 0
+pos = gui.locateOnScreen('Pics/free_now.png')
+x = pos[0] + pos[2] + game_count * nextgame_offset + int(height / 100)
+y = pos[1] + int(height / 100)
+if gui.pixel(x, y)[2] > 128:
+    gui.click(x, y)
+else:
+    pass  # not available
 
-print(pos)
-pos = gui.locateOnScreen('Pics/free_games.png')
-gui.moveTo(pos[0], pos[1] + freegame_offset)
-time.sleep(1)
-gui.move(nextgame_offset, 0)
-time.sleep(1)
-gui.move(nextgame_offset, 0)
-exit()
 
 games_gotten = 1  # starting with 0
 offset_x = games_gotten * 350
@@ -80,12 +60,12 @@ pos = None
 while True:
     pos = gui.locateOnScreen('Pics/add_to_cart.png')
     if pos:
-        break;
+        break
 gui.click(gui.center(pos))
 
 # buy screen
-order_pos = 1432,970
-order_color = 39,140,242
+order_pos = 1432, 970
+order_color = 39, 140, 242
 min_color = 220
 max_color = 560
 
@@ -99,7 +79,14 @@ gui.moveTo(order_pos)
 gui.click(order_pos)
 
 # agree
-agree_pos = 1250,758
+agree_pos = 1250, 758
 gui.moveTo(agree_pos)
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
 
 
