@@ -24,7 +24,6 @@ def locate_free_games(game_count):
             direc = -1
     pos = func.safe_click('Pics/free_now.png', do_press=False)
     if not pos:
-        logging.info('FAIL TO LOCATE free_now BUTTON')
         return -1, -1
     x = pos[0] + pos[2] + game_count * int(width / 5.2)
     y = pos[1] + int(height / 100)
@@ -61,15 +60,19 @@ def buy_games():
 def main():
     game_count = 0
     func.launch_app()
-    tile_pos = locate_free_games(game_count)
-    while tile_pos[0] > 0:
+
+    while True:
+        tile_pos = locate_free_games(game_count)
+        if tile_pos[0] < 0:  # game not available
+            break
         add_to_cart(tile_pos)
         game_count += 1
-        tile_pos = locate_free_games(game_count)
+
     if buy_games():
         logging.info('Games were successfully obtained! Enjoy!')
     else:
         logging.info('Something went wrong, no games obtained')
+
     if conf.kill_app:
         out = subprocess.run(['taskkill', '/IM', conf.app_name], capture_output=True)
         logging.debug(out)
