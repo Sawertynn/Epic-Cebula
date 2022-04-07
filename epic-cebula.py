@@ -1,32 +1,22 @@
+#!python3
 import time
-import os
-from pathlib import Path
 import subprocess
 import logging
-from conf import *
-import pyautogui as gui
-
-# global variables
-width, height = gui.size()
-roll = int(height / 3)
-freegame_offset = int(height / 5)
-nextgame_offset = int(width / 5.2)
-scrollbar_x = 1915
-scrollbar_up = 152
-scrollbar_down = 900
-scroll_color = 400  # RGB sum
+import button as bt
+import conf
 
 
 def launch_app():
-    subprocess.run(app_path)
+    subprocess.run(conf.app_path)
     x = subprocess.run('tasklist', capture_output=True)
-    while app_name not in str(x.stdout):
+    while conf.app_name not in str(x.stdout):
         pass
 
 
 def safe_click(target, reps=3, countdown=0, *, do_press=True):
     if countdown > 0:
         time.sleep(countdown)
+    pos = None
     for _ in range(reps):
         pos = gui.locateOnScreen(target)
         if pos:
@@ -40,7 +30,7 @@ def safe_click(target, reps=3, countdown=0, *, do_press=True):
 
 
 def locate_free_games(game_count):
-    direc = -1;
+    direc = -1
     while True:
         pos = gui.locateOnScreen('Pics/free_now.png')
         if pos:
@@ -65,7 +55,7 @@ def locate_free_games(game_count):
 # add game to cart
 def add_to_cart(tile_pos):
     gui.click(tile_pos)
-    pos = safe_click('Pics/add_to_cart.png', countdown=1)
+    pos = safe_click('Pics/add_to_cart.png')
     ret = safe_click('Pics/store.png')
     if not ret:
         safe_click('Pics/back.png')
@@ -76,14 +66,15 @@ def add_to_cart(tile_pos):
 # buy screen
 def buy_games():
     if not safe_click('Pics/cart.png'):
-        return
+        return False
     if not safe_click('Pics/checkout.png'):
-        return
+        return False
     # order screen loads long, more time and reps
     if not safe_click('Pics/place_order.png', reps=5, countdown=2):
-        return
+        return False
     if not safe_click('Pics/agree.png'):
-        return
+        return False
+    return True
 
 
 def main():
@@ -94,8 +85,13 @@ def main():
         add_to_cart(tile_pos)
         game_count += 1
         tile_pos = locate_free_games(game_count)
-    buy_games()
-    subprocess.run(['taskkill', '/IM', app_name], capture_output=True)
+    if buy_games():
+        logging.info('Games were successfully obtained! Enjoy!')
+    else:
+        logging.info('Something went wrong, no games obtained')
+    if conf.kill_app:
+        out = subprocess.run(['taskkill', '/IM', conf.app_name], capture_output=True)
+        logging.debug(out)
 
 
 if __name__ == '__main__':
@@ -104,10 +100,21 @@ if __name__ == '__main__':
     try:
         import pyautogui as gui
     except ImportError:
+        gui = None
         print('''
             Please import pyautogui module, it\'s essential for this script to run
             Run command below to install it on your computer:
             python -m pip install pyautogui''')
         exit()
-    main()
 
+    # global variables
+    width, height = gui.size()
+    roll = int(height / 3)
+    freegame_offset = int(height / 5)
+    nextgame_offset = int(width / 5.2)
+    scrollbar_x = 1915
+    scrollbar_up = 152
+    scrollbar_down = 900
+    scroll_color = 400  # RGB sum
+
+    main()
