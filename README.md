@@ -1,4 +1,5 @@
 # Epic-Cebula
+## DISCLAIMER: IMAGE RECOGNITION DOESN'T WORK WITH EPIC GAME LAUNCHER, COLORS CHANGNE CONSTANTLY
 ### This is a hobby project aimed to learn automation in Python, very likely it's not the best way to do the job
 
 Do you want some free games from Epic, but not to press some boring buttons every week? No problem, this script got you covered.
