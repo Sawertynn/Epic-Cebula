@@ -1,32 +1,14 @@
-#!python3
 import time
 import subprocess
 import logging
 import button as bt
+import functions as func
 import conf
-
-
-def launch_app():
-    subprocess.run(conf.app_path)
-    x = subprocess.run('tasklist', capture_output=True)
-    while conf.app_name not in str(x.stdout):
-        pass
-
-
-def safe_click(target, reps=3, countdown=0, *, do_press=True):
-    if countdown > 0:
-        time.sleep(countdown)
-    pos = None
-    for _ in range(reps):
-        pos = gui.locateOnScreen(target)
-        if pos:
-            break
-    if not pos:
-        logging.info(f'FAIL: safe_click, {target=}')
-        return None
-    if do_press:
-        gui.click(gui.center(pos))
-    return pos
+try:
+    import pyautogui as gui
+except ImportError:
+    func.import_message('pyautogui')
+    exit()
 
 
 def locate_free_games(game_count):
@@ -40,7 +22,7 @@ def locate_free_games(game_count):
             direc = 1
         elif sum(gui.pixel(scrollbar_x, scrollbar_up)) > scroll_color:
             direc = -1
-    pos = safe_click('Pics/free_now.png', do_press=False)
+    pos = func.safe_click('Pics/free_now.png', do_press=False)
     if not pos:
         logging.info('FAIL TO LOCATE free_now BUTTON')
         return -1, -1
@@ -52,34 +34,33 @@ def locate_free_games(game_count):
         return -1, -1
 
 
-# add game to cart
 def add_to_cart(tile_pos):
     gui.click(tile_pos)
-    pos = safe_click('Pics/add_to_cart.png')
-    ret = safe_click('Pics/store.png')
+    pos = func.safe_click('Pics/add_to_cart.png')
+    ret = func.safe_click('Pics/store.png')
     if not ret:
-        safe_click('Pics/back.png')
+        func.safe_click('Pics/back.png')
     time.sleep(2)  # WAIT
     return bool(pos)
 
 
 # buy screen
 def buy_games():
-    if not safe_click('Pics/cart.png'):
+    if not func.safe_click('Pics/cart.png'):
         return False
-    if not safe_click('Pics/checkout.png'):
+    if not func.safe_click('Pics/checkout.png'):
         return False
     # order screen loads long, more time and reps
-    if not safe_click('Pics/place_order.png', reps=5, countdown=2):
+    if not func.safe_click('Pics/place_order.png', reps=5, countdown=2):
         return False
-    if not safe_click('Pics/agree.png'):
+    if not func.safe_click('Pics/agree.png'):
         return False
     return True
 
 
 def main():
     game_count = 0
-    launch_app()
+    func.launch_app()
     tile_pos = locate_free_games(game_count)
     while tile_pos[0] > 0:
         add_to_cart(tile_pos)
@@ -97,15 +78,6 @@ def main():
 if __name__ == '__main__':
     level = logging.INFO
     logging.basicConfig(level=level)
-    try:
-        import pyautogui as gui
-    except ImportError:
-        gui = None
-        print('''
-            Please import pyautogui module, it\'s essential for this script to run
-            Run command below to install it on your computer:
-            python -m pip install pyautogui''')
-        exit()
 
     # global variables
     width, height = gui.size()
