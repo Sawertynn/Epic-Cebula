@@ -33,7 +33,7 @@ def launch_app():
         pass
 
 
-def safe_click(target, reps=3, countdown=0):
+def safe_click(target, reps=3, countdown=0, *, do_press=True):
     if countdown > 0:
         time.sleep(countdown)
     for _ in range(reps):
@@ -41,9 +41,11 @@ def safe_click(target, reps=3, countdown=0):
         if pos:
             break
     if not pos:
-        return False
-    gui.click(gui.center(pos))
-    return True
+        logging.info(f'FAIL: safe_click, {target=}')
+        return None
+    if do_press:
+        gui.click(gui.center(pos))
+    return pos
 
 
 def locate_free_games(game_count):
@@ -57,12 +59,9 @@ def locate_free_games(game_count):
             direc = 1
         elif sum(gui.pixel(scrollbar_x, scrollbar_up)) > scroll_color:
             direc = -1
-    for _ in range(3):
-        pos = gui.locateOnScreen('Pics/free_now.png')
-        if pos:
-            break
+    pos = safe_click('Pics/free_now.png', do_press=False)
     if not pos:
-        print('HEAVY ERROR')
+        logging.info('FAIL TO LOCATE free_now BUTTON')
         return -1, -1
     x = pos[0] + pos[2] + game_count * int(width / 5.2)
     y = pos[1] + int(height / 100)
@@ -75,14 +74,7 @@ def locate_free_games(game_count):
 # add game to cart
 def add_to_cart(tile_pos):
     gui.click(tile_pos)
-    for _ in range(3):
-        pos = gui.locateOnScreen('Pics/add_to_cart.png')
-        if pos:
-            break
-        if gui.locateOnScreen('Pics/view_in_chart.png'):  # already in chart
-            break
-    if pos:
-        gui.click(gui.center(pos))
+    pos = safe_click('Pics/add_to_cart.png', countdown=1)
     back = gui.locateOnScreen('Pics/back.png')
     if not back:
         back = gui.locateOnScreen('Pics/store.png')
@@ -93,53 +85,27 @@ def add_to_cart(tile_pos):
 
 # buy screen
 def buy_games():
-    for _ in range(3):
-        pos = gui.locateOnScreen('Pics/cart.png')
-        if pos:
-            break
-    if not pos:
+    if not safe_click('Pics/cart.png'):
         return
-    gui.click(gui.center(pos))
-
-    for _ in range(3):
-        pos = gui.locateOnScreen('Pics/checkout.png')
-        if pos:
-            break
-    if not pos:
+    if not safe_click('Pics/checkout.png'):
         return
-    gui.click(gui.center(pos))
-
-    for _ in range(5):
-        pos = gui.locateOnScreen('Pics/place_order.png')
-        if pos:
-            break
-    if not pos:
+    # order screen loads long, more time and reps
+    if not safe_click('Pics/place_order.png', reps=5, countdown=2):
         return
-    gui.click(gui.center(pos))
-
-    for _ in range(3):
-        pos = gui.locateOnScreen('Pics/agree.png')
-        if pos:
-            break
-    if not pos:
+    if not safe_click('Pics/agree.png'):
         return
-    gui.click(gui.center(pos))
 
 
 def main():
-    # game_count = 0
-    # launch_app()
-    # tile_pos = locate_free_games(game_count)
-    # logging.info(f'{tile_pos=}')
-    # while tile_pos[0] > 0:
-    #     add_to_cart(tile_pos)
-    #     game_count += 1
-    #     logging.info(f'before -- gc={game_count}, pos={tile_pos}')
-    #     tile_pos = locate_free_games(game_count)
-    #     logging.info(f'after -- gc={game_count}, pos={tile_pos}')
-    gui.hotkey('alt', 'tab')
+    game_count = 0
+    launch_app()
+    tile_pos = locate_free_games(game_count)
+    while tile_pos[0] > 0:
+        add_to_cart(tile_pos)
+        game_count += 1
+        tile_pos = locate_free_games(game_count)
     buy_games()
-    subprocess.run(['taskkill', app_name], capture_output=True)
+    subprocess.run(['taskkill', '/IM', app_name], capture_output=True)
 
 
 if __name__ == '__main__':
