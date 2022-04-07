@@ -6,15 +6,6 @@ import logging
 from conf import *
 import pyautogui as gui
 
-# try:
-#     import pyautogui as gui
-# except ImportError:
-#     print('''
-#         Please import pyautogui module, it\'s essential for this script to run
-#         Run command below to install it on your computer:
-#         python -m pip install pyautogui''')
-#     exit()
-
 # global variables
 width, height = gui.size()
 roll = int(height / 3)
@@ -75,11 +66,10 @@ def locate_free_games(game_count):
 def add_to_cart(tile_pos):
     gui.click(tile_pos)
     pos = safe_click('Pics/add_to_cart.png', countdown=1)
-    back = gui.locateOnScreen('Pics/back.png')
-    if not back:
-        back = gui.locateOnScreen('Pics/store.png')
-    gui.click(back)
-    time.sleep(2)
+    ret = safe_click('Pics/store.png')
+    if not ret:
+        safe_click('Pics/back.png')
+    time.sleep(2)  # WAIT
     return bool(pos)
 
 
@@ -111,5 +101,13 @@ def main():
 if __name__ == '__main__':
     level = logging.INFO
     logging.basicConfig(level=level)
+    try:
+        import pyautogui as gui
+    except ImportError:
+        print('''
+            Please import pyautogui module, it\'s essential for this script to run
+            Run command below to install it on your computer:
+            python -m pip install pyautogui''')
+        exit()
     main()
 
