@@ -11,7 +11,7 @@ except ImportError:
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    game_count = 0
+    game_count = 1
     func.launch_app()
     while True:
         tile_pos = func.locate_free_games(game_count, gui.size())

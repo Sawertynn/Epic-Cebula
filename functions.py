@@ -9,7 +9,7 @@ def locate_free_games(game_count, s_size):
     direc = -1
     width, height = s_size
     while True:
-        pos = gui.locateOnScreen('Pics/free_now.png')
+        pos = locate_multi(conf.free_now)
         if pos:
             break
         gui.scroll(direc * int(height * conf.roll_mlt))
@@ -17,7 +17,7 @@ def locate_free_games(game_count, s_size):
             direc = 1
         elif sum(gui.pixel(conf.scrollbar_x, conf.scrollbar_up)) > conf.scroll_color:
             direc = -1
-    pos = safe_click('Pics/free_now.png', do_press=False)
+    pos = locate_multi(conf.free_now, click=True)
     if not pos:
         return -1, -1
     x = pos[0] + pos[2] + game_count * int(width * conf.next_game_mlt)
@@ -31,24 +31,22 @@ def locate_free_games(game_count, s_size):
 # game screen
 def add_to_cart(tile_pos):
     gui.click(tile_pos)
-    pos = safe_click('Pics/add_to_cart.png')
-    ret = safe_click('Pics/store.png')
-    if not ret:
-        safe_click('Pics/back.png')
-    time.sleep(2)  # WAIT
+    pos = locate_multi(conf.add_to_cart, click=True)
+    locate_multi((conf.store, conf.back), reps=2, click=True)
+    time.sleep(2)  # WAIT for store screen
     return bool(pos)
 
 
 # buy screen
 def buy_games():
-    if not safe_click('Pics/cart.png'):
+    if not safe_click(conf.cart):
         return False
-    if not safe_click('Pics/checkout.png'):
+    if not safe_click(conf.checkout):
         return False
     # order screen loads long, more time and reps
-    if not safe_click('Pics/place_order.png', reps=5, countdown=2):
+    if not safe_click(conf.place_order, reps=5):
         return False
-    if not safe_click('Pics/agree.png'):
+    if not safe_click(conf.agree):
         return False
     return True
 
@@ -72,20 +70,30 @@ def launch_app():
         pass
 
 
-def safe_click(target, reps=3, countdown=0, *, do_press=True):
-    if countdown > 0:
-        time.sleep(countdown)
+def locate_multi(*targets, reps=1, click=False):
     pos = None
     for _ in range(reps):
-        pos = gui.locateOnScreen(target)
         if pos:
             break
-    if not pos:
-        return None
-    if do_press:
-        gui.click(gui.center(pos))
+        for target in targets:
+            if not isinstance(target, tuple):
+                pos = gui.locateOnScreen(target)
+                if pos:
+                    break
+            for tar in target:
+                pos = gui.locateOnScreen(tar)
+                if pos:
+                    break
+            if pos:
+                break
+    if pos and click:
+        gui.click(pos)
     return pos
 
+
+def safe_click(target, reps=3, do_press=True):
+    x = locate_multi(target, reps=reps, click=do_press)
+    return x
 
 def cast(point: (int, int), size: (int, int)):
     x = point[0] * size[0] / conf.rel_width
