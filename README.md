@@ -15,4 +15,4 @@ This is an early prototype yet:
 - Epic Games Launcher (permanently logged in)
 
 ## Usage:
-Run epic-cebula.py in python, that's it.
+Click on run.bat or run epic-cebula.py in python.
